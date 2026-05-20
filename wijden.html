@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WIJDEN Mood Machine</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        min-height: 100vh;
+        transition: 1s;
+        background: #111827;
+        color: white;
+        scroll-behavior: smooth;
+      }
+
+      .screen {
+        position: absolute;
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 40px 20px 120px;
+        transition: 0.7s;
+        overflow-y: auto;
+        gap: 20px;
+      }
+
+      .hidden {
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(1.05);
+        display: none;
+      }
+
+      .title {
+        font-size: 4rem;
+        font-weight: 700;
+        text-align: center;
+        background: linear-gradient(90deg, #fff, #f9a8d4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: float 3s ease-in-out infinite;
+      }
+
+      #mainScreen .title {
+        margin-top: 40px;
+      }
+
+      .subtitle {
+        margin-top: 15px;
+        font-size: 1.2rem;
+        opacity: 0.8;
+        text-align: center;
+        max-width: 700px;
+        line-height: 1.8;
+      }
+
+      .enter-btn,
+      .mode-btn,
+      .generate-btn,
+      .camera-btn,
+      .action-btn {
+        margin-top: 30px;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 20px;
+        background: white;
+        color: black;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s;
+        box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+      }
+
+      .enter-btn:hover,
+      .mode-btn:hover,
+      .generate-btn:hover,
+      .camera-btn:hover,
+      .action-btn:hover {
+        transform: translateY(-5px) scale(1.05);
+      }
+
+      .moods {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
+        width: 90%;
+        max-width: 900px;
+        margin-top: 40px;
+      }
+
+      .mood-card {
+        padding: 30px;
+        border-radius: 25px;
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        text-align: center;
+        cursor: pointer;
+        transition: 0.4s;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .mood-card:hover {
+        transform: translateY(-10px) scale(1.05);
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .quote-box {
+        margin-top: 30px;
+        width: 90%;
+        max-width: 800px;
+        padding: 30px;
+        border-radius: 25px;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(15px);
+        text-align: center;
+        font-size: 1.5rem;
+        line-height: 1.8;
+        min-height: 180px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 0.6s;
+      }
+
+      .mode-buttons {
+        display: flex;
+        gap: 20px;
+        margin-top: 25px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .popup {
+        position: absolute;
+        padding: 12px 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        animation: popupAnim 7s linear forwards;
+        font-size: 0.95rem;
+      }
+
+      .camera-section {
+        margin-top: 30px;
+        width: 90%;
+        max-width: 700px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        animation: fadeIn 0.6s ease;
+      }
+
+      .custom-file-upload {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 18px;
+        border-radius: 20px;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        transition: 0.3s;
+        font-weight: 600;
+        font-size: 1rem;
+        color: white;
+      }
+
+      .custom-file-upload:hover {
+        transform: scale(1.03);
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .custom-file-upload input {
+        display: none;
+      }
+
+      .image-preview-container {
+        position: relative;
+        width: 100%;
+        height: 320px;
+        border-radius: 28px;
+        overflow: hidden;
+        display: none;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(15px);
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.35);
+        animation: fadeIn 0.6s ease;
+      }
+
+      .image-preview-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: brightness(0.8) saturate(1.2);
+        transition: 0.4s;
+      }
+
+      .image-preview-container:hover img {
+        transform: scale(1.03);
+        filter: brightness(0.9) saturate(1.3);
+      }
+
+      .image-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 20px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+        font-size: 1.2rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-align: center;
+        backdrop-filter: blur(4px);
+      }
+
+      textarea {
+        width: 100%;
+        height: 140px;
+        border: none;
+        border-radius: 20px;
+        padding: 20px;
+        font-size: 1rem;
+        outline: none;
+        resize: none;
+        background: rgba(0, 0, 0, 0.25);
+        color: white;
+        backdrop-filter: blur(10px);
+        line-height: 1.7;
+        font-weight: 500;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      textarea::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .response-box {
+        margin-top: 20px;
+        padding: 25px;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.25);
+        width: 100%;
+        line-height: 1.9;
+        font-size: 1.08rem;
+        backdrop-filter: blur(10px);
+        min-height: 120px;
+        font-weight: 500;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.25);
+      }
+
+      .floating {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        animation: floatUp linear infinite;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-15px);
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes popupAnim {
+        0% {
+          opacity: 0;
+          transform: translateY(40px) scale(0.8);
+        }
+        10% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-250px) scale(1.1);
+        }
+      }
+
+      @keyframes floatUp {
+        from {
+          transform: translateY(100vh);
+        }
+        to {
+          transform: translateY(-200px);
+        }
+      }
+
+      .happy {
+        background: linear-gradient(135deg, #ffb6d9, #ffd6a5, #caffbf);
+      }
+
+      .sad {
+        background: linear-gradient(135deg, #0f172a, #1e3a8a, #334155);
+      }
+
+      .angry {
+        background: linear-gradient(135deg, #450a0a, #991b1b, #dc2626);
+      }
+
+      .tired {
+        background: linear-gradient(135deg, #312e81, #4c1d95, #6d28d9);
+      }
+
+      .nervous {
+        background: linear-gradient(135deg, #111827, #6d28d9, #9333ea);
+      }
+
+      .glow {
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+      }
+
+      @media (max-width: 700px) {
+        .title {
+          font-size: 2.5rem;
+        }
+
+        .quote-box {
+          font-size: 1.2rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="particles"></div>
+
+    <section class="screen" id="intro">
+      <h1 class="title glow">WIJDEN Mood Machine</h1>
+
+      <p class="subtitle">
+        A tiny universe made for dojdoj ✨
+        <br /><br />
+        This website detects emotional damage, overthinking, sleep deprivation
+        and dramatic energy levels.
+      </p>
+
+      <button class="enter-btn" onclick="goToMood()">
+        Enter dojdoj universe
+      </button>
+    </section>
+
+    <section class="screen hidden" id="moodScreen">
+      <h1 class="title">How are you feeling today?</h1>
+
+      <div class="moods">
+        <div class="mood-card" onclick="selectMood('happy')">😊 Happy</div>
+
+        <div class="mood-card" onclick="selectMood('sad')">😢 Sad</div>
+
+        <div class="mood-card" onclick="selectMood('angry')">😡 Angry</div>
+
+        <div class="mood-card" onclick="selectMood('tired')">😴 Tired</div>
+
+        <div class="mood-card" onclick="selectMood('nervous')">😰 Nervous</div>
+      </div>
+    </section>
+
+    <section class="screen hidden" id="mainScreen">
+      <h1 class="title" id="mainTitle">Welcome dojdoj</h1>
+
+      <div class="mode-buttons">
+        <button class="mode-btn" onclick="setMode('funny')">Funny Mode</button>
+
+        <button class="mode-btn" onclick="setMode('emotional')">
+          Emotional Mode
+        </button>
+      </div>
+
+      <div class="quote-box" id="quoteBox">Choose a mode to begin ✨</div>
+
+      <button class="generate-btn" onclick="generateQuote()">
+        Generate Another
+      </button>
+
+      <button class="camera-btn" onclick="toggleCamera()">
+        📸 AI Memory Camera
+      </button>
+
+      <div class="camera-section hidden" id="cameraSection">
+        <label class="custom-file-upload">
+          📸 Upload a memory
+          <input
+            type="file"
+            id="imageInput"
+            accept="image/*"
+            onchange="previewImage(event)"
+          />
+        </label>
+
+        <div class="image-preview-container" id="imagePreviewContainer">
+          <img id="previewImage" src="" alt="Memory Preview" />
+          <div class="image-overlay">✨ dojdoj memories ✨</div>
+        </div>
+
+        <textarea
+          id="storyInput"
+          placeholder="Tell the AI what happened today..."
+        ></textarea>
+
+        <div class="mode-buttons">
+          <button class="action-btn" onclick="generateStory()">
+            Generate Story
+          </button>
+
+          <button class="action-btn" onclick="comfortResponse()">
+            Comfort Me
+          </button>
+        </div>
+
+        <div class="response-box" id="responseBox">
+          The AI is waiting for dojdoj's story...
+        </div>
+      </div>
+    </section>
+
+    <script>
+      const intro = document.getElementById("intro");
+      const moodScreen = document.getElementById("moodScreen");
+      const mainScreen = document.getElementById("mainScreen");
+      const quoteBox = document.getElementById("quoteBox");
+      const responseBox = document.getElementById("responseBox");
+      const cameraSection = document.getElementById("cameraSection");
+
+      let currentMood = "happy";
+      let currentMode = "funny";
+
+      function goToMood() {
+        intro.classList.add("hidden");
+        moodScreen.classList.remove("hidden");
+        moodScreen.style.display = "flex";
+      }
+
+      function selectMood(mood) {
+        currentMood = mood;
+
+        document.body.className = mood;
+
+        moodScreen.classList.add("hidden");
+        mainScreen.classList.remove("hidden");
+        mainScreen.style.display = "flex";
+
+        generateQuote();
+        createPopups();
+      }
+
+      function setMode(mode) {
+        currentMode = mode;
+        generateQuote();
+      }
+
+      const quotes = {
+        happy: {
+          funny: [
+            "WIJDEN has reached dangerous happiness levels today.",
+            "Breaking news: dojdoj smiled and the entire universe healed.",
+            "Scientists confirmed that dojdoj's laugh adds 5 years to human lifespan.",
+            "Warning: too much happiness may cause spontaneous dancing.",
+            "dojdoj unlocked legendary sunshine energy.",
+            "The happiness police are searching for WIJDEN immediately.",
+            "Current mood: dancing in the kitchen for no reason.",
+            "WIJDEN just defeated sadness with pure main character energy.",
+            "Smiling too hard may cause emotional cuteness overload.",
+            "dojdoj is illegally adorable today.",
+          ],
+          emotional: [
+            "WIJDEN, your joy makes ordinary days feel magical.",
+            "Even the sky looks softer when dojdoj is happy.",
+            "Some people carry light inside them. You're one of them.",
+            "Your happiness deserves to stay longer than your worries.",
+            "You make warmth feel easy.",
+            "The world becomes gentler when you smile.",
+            "WIJDEN, happiness looks beautiful on you.",
+            "You deserve every peaceful moment you get.",
+            "There is something comforting about your energy.",
+            "dojdoj, never underestimate how much light you bring.",
+          ],
+        },
+
+        sad: {
+          funny: [
+            "dojdoj.exe stopped working but still looks iconic.",
+            "Emergency protocol activated: deploy snacks and hugs immediately.",
+            "WIJDEN is emotionally buffering... please wait.",
+            "Sadness detected. Solution unavailable. Sending memes instead.",
+            "dojdoj needs a nap and emotional support fries.",
+            "Today's forecast: 80% overthinking, 20% dramatic silence.",
+            "The council of plushies is worried about WIJDEN.",
+            "Emotional damage level: watching old messages at 2AM.",
+            "dojdoj temporarily disconnected from happiness servers.",
+            "AI recommendation: wrap yourself in a blanket immediately.",
+          ],
+          emotional: [
+            "WIJDEN, storms don't stay forever.",
+            "Even tired hearts deserve gentleness.",
+            "dojdoj, you survived every difficult day before this one too.",
+            "You don't need to shine every second to still be precious.",
+            "Healing takes time, not perfection.",
+            "Some days are heavy. That doesn't make you weak.",
+            "You deserve kindness even on your worst days.",
+            "The stars still exist even behind clouds.",
+            "dojdoj, your feelings matter.",
+            "WIJDEN, you are loved more than your sadness lets you believe.",
+          ],
+        },
+
+        angry: {
+          funny: [
+            "WARNING: dojdoj entered boss battle mode.",
+            "WIJDEN currently has the emotional power of 19 volcanoes.",
+            "Someone annoyed dojdoj. May God help them.",
+            "Anger levels critical. Hide the pillows before they get punched.",
+            "dojdoj is one inconvenience away from becoming a supervillain.",
+            "The walls are nervous around WIJDEN today.",
+            "Current mission: survive without throwing the phone.",
+            "Emotional temperature: lava.",
+            "dojdoj unlocked rage premium edition.",
+            "Warning: sarcasm damage increased by 300%.",
+          ],
+          emotional: [
+            "It's okay to feel overwhelmed sometimes.",
+            "WIJDEN, your emotions are valid even when they're loud.",
+            "Strong people get angry too.",
+            "You deserve peace, not pressure.",
+            "You are allowed to pause and breathe.",
+            "Not every emotion needs to be hidden.",
+            "dojdoj, your frustration doesn't define you.",
+            "Your heart is tired, not broken.",
+            "WIJDEN, you deserve calm moments too.",
+            "Even fire eventually becomes warmth again.",
+          ],
+        },
+
+        tired: {
+          funny: [
+            "dojdoj has only 1% battery remaining.",
+            "WIJDEN needs sleep, coffee and emotional compensation.",
+            "System warning: dramatic exhaustion detected.",
+            "NASA confirmed dojdoj is functioning beyond human limits.",
+            "Current activity: surviving.",
+            "WIJDEN is powered entirely by vibes and caffeine.",
+            "Loading energy... failed successfully.",
+            "dojdoj blinked slowly and entered another dimension.",
+            "Sleep is calling but responsibilities answered first.",
+            "The bed misses WIJDEN deeply.",
+          ],
+          emotional: [
+            "Rest is not weakness.",
+            "WIJDEN, you've carried enough for today.",
+            "You deserve softness and quiet moments.",
+            "Even stars need darkness to shine.",
+            "You don't always have to be strong.",
+            "Your tiredness is real and valid.",
+            "dojdoj, slow down a little.",
+            "Peace begins with allowing yourself to rest.",
+            "Your soul deserves quiet too.",
+            "WIJDEN, you have done enough for one day.",
+          ],
+        },
+
+        nervous: {
+          funny: [
+            "dojdoj overthinking championship starts now.",
+            "Anxiety detected. Confidence update downloading...",
+            "WIJDEN imagined 42 fake scenarios today.",
+            "Your brain needs a vacation immediately.",
+            "dojdoj created problems that don't even exist yet.",
+            "Current skill: worrying professionally.",
+            "WIJDEN mentally replayed one awkward moment 18 times.",
+            "Anxiety is loud today but dojdoj is louder.",
+            "Breaking news: overthinking reached maximum capacity.",
+            "dojdoj vs imagination final battle begins.",
+          ],
+          emotional: [
+            "Take it slowly, WIJDEN.",
+            "You don't have to solve everything tonight.",
+            "dojdoj, breathe. You're doing better than you think.",
+            "The future doesn't need you to fear it to exist.",
+            "Your mind deserves rest from worry.",
+            "You are safe even when your thoughts feel chaotic.",
+            "WIJDEN, one step at a time is enough.",
+            "Not everything scary will happen.",
+            "dojdoj, your heart deserves peace.",
+            "You are stronger than your anxious thoughts.",
+          ],
+        },
+      };
+
+      function generateQuote() {
+        const selected = quotes[currentMood][currentMode];
+
+        const random = selected[Math.floor(Math.random() * selected.length)];
+
+        quoteBox.innerHTML = random;
+      }
+
+      let popupInterval;
+
+      function createPopups() {
+        clearInterval(popupInterval);
+
+        popupInterval = setInterval(() => {
+          const popup = document.createElement("div");
+
+          popup.className = "popup";
+
+          const random =
+            quotes[currentMood][currentMode][
+              Math.floor(
+                Math.random() * quotes[currentMood][currentMode].length
+              )
+            ];
+
+          popup.innerHTML = random;
+
+          popup.style.left = Math.random() * 90 + "%";
+          popup.style.top = Math.random() * 80 + "%";
+
+          document.body.appendChild(popup);
+
+          setTimeout(() => {
+            popup.remove();
+          }, 7000);
+        }, 2500);
+      }
+
+      function toggleCamera() {
+        if (cameraSection.classList.contains("hidden")) {
+          cameraSection.classList.remove("hidden");
+
+          cameraSection.style.display = "flex";
+          cameraSection.style.opacity = "1";
+          cameraSection.style.pointerEvents = "all";
+          cameraSection.style.transform = "scale(1)";
+        } else {
+          cameraSection.classList.add("hidden");
+        }
+      }
+
+      function generateStory() {
+        const stories = [
+          `In another universe, Captain Dojdoj crossed an entire neon city carrying invisible sadness while pretending everything was okay. Yet somehow, WIJDEN still made people smile without noticing.`,
+
+          `Legend says that whenever dojdoj feels overwhelmed, the stars pause for a moment just to listen.`,
+
+          `The AI scanned your message and concluded that WIJDEN has been strong for too long without receiving enough hugs.`,
+
+          `Far away in a futuristic world, dojdoj became the main character who survived chaos using courage, sarcasm and emotional damage.`,
+        ];
+
+        responseBox.innerHTML =
+          stories[Math.floor(Math.random() * stories.length)];
+      }
+
+      function comfortResponse() {
+        const responses = [
+          "WIJDEN, your brain is being dramatic again. Drink water and continue being iconic.",
+
+          "dojdoj, nobody handles life perfectly. You're allowed to rest too.",
+
+          "The AI officially confirmed that you deserve kindness today.",
+
+          "Emergency comfort package delivered successfully to WIJDEN.",
+
+          "You are not behind in life. You're just human.",
+        ];
+
+        responseBox.innerHTML =
+          responses[Math.floor(Math.random() * responses.length)];
+      }
+
+      function previewImage(event) {
+        const file = event.target.files[0];
+
+        if (file) {
+          const reader = new FileReader();
+
+          reader.onload = function (e) {
+            const preview = document.getElementById("previewImage");
+            const container = document.getElementById("imagePreviewContainer");
+
+            preview.src = e.target.result;
+            container.style.display = "block";
+          };
+
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function createFloating() {
+        for (let i = 0; i < 25; i++) {
+          const div = document.createElement("div");
+
+          div.className = "floating";
+
+          const size = Math.random() * 80 + 20;
+
+          div.style.width = size + "px";
+          div.style.height = size + "px";
+          div.style.left = Math.random() * 100 + "%";
+          div.style.animationDuration = Math.random() * 10 + 10 + "s";
+          div.style.animationDelay = Math.random() * 5 + "s";
+
+          document.body.appendChild(div);
+        }
+      }
+
+      createFloating();
+    </script>
+  </body>
+</html>
